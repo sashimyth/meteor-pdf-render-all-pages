@@ -4,18 +4,20 @@
 
 <body>
     <h2>Hello</h2>
-    <div id="app"></div>
+    <!--<div id="app"></div>-->
     {{>pdget}}
 </body>
 
 <template name="pdget">
     <script src="//mozilla.github.io/pdf.js/build/pdf.js"></script>
-    <div>
-        <button id="prev">Previous</button>
-        <button id="next">Next</button>
-        &nbsp; &nbsp;
-        <span>Page: <span id="page_num"></span> / <span id="page_count"></span></span>
-    </div>
+    <!--<div>-->
+        <!--<button id="prev">Previous</button>-->
+        <!--<button id="next">Next</button>-->
+        <!--&nbsp; &nbsp;-->
+        <!--<span>Page: <span id="page_num"></span> / <span id="page_count"></span></span>-->
+    <!--</div>-->
 
-    <canvas id="pdfcanvas"></canvas>
+    <div id="pdfcanvas" style="width:auto;height:600px;overflow-y:scroll;">
+
+    </div>
 </template>

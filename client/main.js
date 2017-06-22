@@ -8,103 +8,118 @@ import { Template } from 'meteor/templating';
 import './main.html'
 
 Template.pdget.onRendered(function () {
+
     // If absolute URL from the remote server is provided, configure the CORS
     // header on that server.
+
+    var currentPage = 1;
+    var pages = [];
 
     var url = '//cdn.mozilla.net/pdfjs/tracemonkey.pdf';
 
     // The workerSrc property shall be specified.
     PDFJS.workerSrc = '/packages/pascoual_pdfjs/build/pdf.worker.js';
 
-    var pdfDoc = null,
-        pageNum = 1,
-        pageRendering = false,
-        pageNumPending = null,
-        scale = 2,
-        canvas = document.getElementById('pdfcanvas'),
-        ctx = canvas.getContext('2d');
+    // Asynchronous download of PDF
+    var loadingTask = PDFJS.getDocument(url);
+    loadingTask.promise.then(function(pdf) {
+        console.log('PDF loaded');
 
-    /**
-     * Get page info from document, resize canvas accordingly, and render page.
-     * @param num Page number.
-     */
-    function renderPage(num) {
-        pageRendering = true;
-        // Using promise to fetch the page
-        pdfDoc.getPage(num).then(function(page) {
-            var viewport = page.getViewport(scale);
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
+        function renderPage(page) {
+            console.log('Page loaded ');
 
-            // Render PDF page into canvas context
+            var scale = 1.5;
+            var scaledViewport = page.getViewport(scale);
+
+            var canvas = document.createElement('canvas');
+            var context = canvas.getContext('2d');
+            canvas.height = scaledViewport.height;
+            canvas.width = scaledViewport.width;
+
             var renderContext = {
-                canvasContext: ctx,
-                viewport: viewport
+                canvasContext: context,
+                viewport: scaledViewport
             };
-            var renderTask = page.render(renderContext);
 
-            // Wait for rendering to finish
-            renderTask.promise.then(function() {
-                pageRendering = false;
-                if (pageNumPending !== null) {
-                    // New page rendering is pending
-                    renderPage(pageNumPending);
-                    pageNumPending = null;
+            page.render(renderContext).then(function () {
+                if(currentPage < pdf.numPages) {
+                    pages[currentPage] = canvas;
+                    currentPage++;
+                    pdf.getPage(currentPage).then(renderPage);
+                } else {
+                    for (var i = 1; i < pages.length; i++) {
+                        document.getElementById('pdfcanvas').appendChild(pages[i]);
+                    }
                 }
             });
-        });
-
-        // Update page counters
-        document.getElementById('page_num').textContent = pageNum;
-    }
-
-    /**
-     * If another page rendering in progress, waits until the rendering is
-     * finised. Otherwise, executes rendering immediately.
-     */
-    function queueRenderPage(num) {
-        if (pageRendering) {
-            pageNumPending = num;
-        } else {
-            renderPage(num);
         }
-    }
 
-    /**
-     * Displays previous page.
-     */
-    function onPrevPage() {
-        if (pageNum <= 1) {
-            return;
-        }
-        pageNum--;
-        queueRenderPage(pageNum);
-    }
-    document.getElementById('prev').addEventListener('click', onPrevPage);
+        // Render the fetched first page
+            pdf.getPage(currentPage).then(renderPage);
 
-    /**
-     * Displays next page.
-     */
-    function onNextPage() {
-        if (pageNum >= pdfDoc.numPages) {
-            return;
-        }
-        pageNum++;
-        queueRenderPage(pageNum);
-    }
-    document.getElementById('next').addEventListener('click', onNextPage);
-
-    /**
-     * Asynchronously downloads PDF.
-     */
-    PDFJS.getDocument(url).then(function(pdfDoc_) {
-        pdfDoc = pdfDoc_;
-        document.getElementById('page_count').textContent = pdfDoc.numPages;
-
-        // Initial/first page rendering
-        renderPage(pageNum);
+    }, function (reason) {
+        // PDF loading error
+        console.error(reason);
     });
+
+
+
 });
+
+// Template.pdget.onRendered(function () {
+//     // If absolute URL from the remote server is provided, configure the CORS
+//     // header on that server.
+//
+//     var currentPage = 1;
+//     var pages = [];
+//
+//     var url = '//cdn.mozilla.net/pdfjs/tracemonkey.pdf';
+//
+//     // The workerSrc property shall be specified.
+//     PDFJS.workerSrc = '/packages/pascoual_pdfjs/build/pdf.worker.js';
+//
+//     // Asynchronous download of PDF
+//     var loadingTask = PDFJS.getDocument(url);
+//     loadingTask.promise.then(function(pdf) {
+//         console.log('PDF loaded');
+//
+//         // Fetch the first page
+//             pdf.getPage(currentPage).then(renderPage);
+//
+//     }, function (reason) {
+//         // PDF loading error
+//         console.error(reason);
+//     });
+//
+//     function renderPage(page) {
+//         console.log('Page loaded ');
+//
+//         var height = 700;
+//         var viewport = page.getViewport(1);
+//         var scale = height / viewport.height;
+//         var viewport = page.getViewport(scale);
+//
+//         // Prepare canvas using PDF page dimensions
+//         $('#pdfcanvas').append($('<canvas/>', {'id': 'pdf-viewer-' + i}));
+//
+//         var canvas = document.getElementById('pdf-viewer-' + i);
+//
+//         var context = canvas.getContext('2d');
+//         canvas.height = viewport.height;
+//         canvas.width = viewport.width;
+//
+//         // Render PDF page into canvas context
+//         var renderContext = {
+//             canvasContext: context,
+//             viewport: viewport
+//         };
+//         var renderTask = page.render(renderContext);
+//         renderTask.then(function () {
+//             console.log('Page rendered ');
+//         });
+//     }
+//
+// });
 //
 // Template.pdfjs.onRendered(function () {
 //
