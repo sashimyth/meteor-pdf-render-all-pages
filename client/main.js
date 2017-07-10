@@ -3,9 +3,9 @@
  */
 import '../imports/startup/client'
 
-// import { Template } from 'meteor/templating';
-//
-// import './main.html'
+import { Template } from 'meteor/templating';
+
+import './main.html'
 //
 // Template.pdget.onRendered(function () {
 //
@@ -61,11 +61,9 @@ import '../imports/startup/client'
 //         // PDF loading error
 //         console.error(reason);
 //     });
-//
-//
-//
 // });
 
+//
 // Template.pdget.onRendered(function () {
 //     // If absolute URL from the remote server is provided, configure the CORS
 //     // header on that server.

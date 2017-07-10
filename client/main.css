@@ -2,3 +2,12 @@
 body{
     color:#000;
 }
+.active{
+    background: black;
+}
+
+.pdfcanvas{
+    width:auto;
+    height:600px;
+    overflow-y:scroll;
+}
